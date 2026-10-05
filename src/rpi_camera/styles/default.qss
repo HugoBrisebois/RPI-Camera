@@ -1,0 +1,85 @@
+QMainWindow, QWidget {
+	background-color: #171a1d;
+	color: #edf0f2;
+	font-family: "DejaVu Sans";
+	font-size: 15px;
+}
+
+QLabel#sectionTitle {
+	color: #a8d8ca;
+	font-size: 16px;
+	font-weight: 700;
+}
+
+QLabel#status {
+	color: #b7c0c5;
+	padding: 8px;
+}
+
+QLabel#preview {
+	background-color: #080a0b;
+	color: #98a3a9;
+	font-size: 20px;
+}
+
+QScrollArea#settingsScroll {
+	background-color: #171a1d;
+	border: 0;
+}
+
+QSpinBox, QDoubleSpinBox, QComboBox {
+	background-color: #252a2e;
+	border: 1px solid #515b61;
+	border-radius: 4px;
+	min-height: 42px;
+	padding: 2px 8px;
+	font-size: 16px;
+}
+
+QCheckBox {
+	min-height: 42px;
+	spacing: 10px;
+	font-size: 16px;
+}
+
+QCheckBox::indicator {
+	width: 24px;
+	height: 24px;
+}
+
+QPushButton {
+	background-color: #35413f;
+	border: 1px solid #65736f;
+	border-radius: 5px;
+	min-height: 46px;
+	padding: 4px 12px;
+	font-size: 16px;
+}
+
+QPushButton:hover {
+	background-color: #465650;
+}
+
+QPushButton:pressed {
+	background-color: #29332f;
+}
+
+QPushButton:disabled {
+	background-color: #252a2e;
+	color: #778087;
+}
+
+QPushButton#shutterButton {
+	background-color: #d8583e;
+	border: 3px solid #f3b09f;
+	border-radius: 34px;
+	min-width: 68px;
+	max-width: 68px;
+	min-height: 68px;
+	max-height: 68px;
+	font-size: 25px;
+}
+
+QPushButton#shutterButton:hover {
+	background-color: #ed7359;
+}

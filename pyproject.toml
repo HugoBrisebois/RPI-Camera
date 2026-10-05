@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rpi-camera-touch"
+version = "1.0.0"
+description = "Touchscreen controls for Raspberry Pi Camera Module 3"
+requires-python = ">=3.10"
+
+[project.scripts]
+rpi-camera = "rpi_camera.main:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+rpi_camera = ["styles/*.qss"]

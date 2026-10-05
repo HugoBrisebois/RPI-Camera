@@ -1,4 +1,5 @@
-import picamera2
-import pyqt6
+from rpi_camera.main import main
 
 
+if __name__ == "__main__":
+	raise SystemExit(main())
