@@ -165,7 +165,7 @@ class CameraWindow(QMainWindow):
 			width,
 			height,
 			channels * width,
-			QImage.Format.Format_RGB888,
+			QImage.Format.Format_BGR888,
 		).copy()
 
 	@classmethod
