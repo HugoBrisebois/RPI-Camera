@@ -18,6 +18,7 @@ from PyQt6.QtWidgets import (
 
 from .camera import CameraService
 from .photo_transfer import PhotoTransferWorker, TransferOptionsDialog
+from .preferences import load_photo_directory, save_photo_directory
 from .settings_panel import SettingsPanel
 from .storage import mounted_removable_drives
 
@@ -31,8 +32,9 @@ class CameraWindow(QMainWindow):
 		self.setWindowTitle("Raspberry Pi Camera")
 		self.resize(800, 480)
 		self.camera = camera or CameraService()
-		self.photo_directory = Path.home() / "Pictures" / "RPiCamera"
+		self.photo_directory = load_photo_directory()
 		self.photo_directory.mkdir(parents=True, exist_ok=True)
+		self._preview_pixmap = QPixmap()
 		self.removable_drives = {}
 		self.transfer_worker = None
 		self._build_ui()
@@ -59,6 +61,7 @@ class CameraWindow(QMainWindow):
 		self.preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
 		self.preview.setMinimumSize(320, 240)
 		self.preview.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+		self.preview.setScaledContents(False)
 		preview_column.addWidget(self.preview, 1)
 
 		footer = QHBoxLayout()
@@ -114,17 +117,26 @@ class CameraWindow(QMainWindow):
 		try:
 			frame = self.camera.capture_preview()
 			image = self._rotated_image(frame)
-			pixmap = QPixmap.fromImage(image)
-			self.preview.setPixmap(
-				pixmap.scaled(
-					self.preview.size(),
-					Qt.AspectRatioMode.KeepAspectRatio,
-					Qt.TransformationMode.SmoothTransformation,
-				)
-			)
+			self._preview_pixmap = QPixmap.fromImage(image)
+			self._fit_preview()
 		except Exception as exc:
 			self.preview_timer.stop()
 			self._set_status(f"Preview stopped: {exc}")
+
+	def _fit_preview(self):
+		if self._preview_pixmap.isNull() or self.preview.size().isEmpty():
+			return
+		self.preview.setPixmap(
+			self._preview_pixmap.scaled(
+				self.preview.size(),
+				Qt.AspectRatioMode.KeepAspectRatio,
+				Qt.TransformationMode.SmoothTransformation,
+			)
+		)
+
+	def resizeEvent(self, event):
+		super().resizeEvent(event)
+		self._fit_preview()
 
 	def _capture_photo(self):
 		if not self.camera.connected:
@@ -163,7 +175,12 @@ class CameraWindow(QMainWindow):
 		)
 		if folder:
 			self.photo_directory = Path(folder)
-			self._set_status(f"Photos saved to {folder}")
+			try:
+				save_photo_directory(self.photo_directory)
+			except OSError as exc:
+				self._set_status(f"Folder selected, but preference could not be saved: {exc}")
+			else:
+				self._set_status(f"Photos saved to {folder}; choice remembered")
 
 	def _scan_removable_drives(self):
 		try:
