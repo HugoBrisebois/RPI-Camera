@@ -26,6 +26,8 @@ from .storage import mounted_removable_drives
 class CameraWindow(QMainWindow):
 	"""Coordinates the camera service and the app's main view."""
 
+	CAMERA_ORIENTATION_DEGREES = 0
+
 	def __init__(self, camera=None):
 		super().__init__()
 		self.setObjectName("cameraWindow")
@@ -116,7 +118,7 @@ class CameraWindow(QMainWindow):
 	def _update_preview(self):
 		try:
 			frame = self.camera.capture_preview()
-			image = self._frame_image(frame)
+			image = self._oriented_image(frame)
 			self._preview_pixmap = QPixmap.fromImage(image)
 			self._fit_preview()
 		except Exception as exc:
@@ -147,7 +149,7 @@ class CameraWindow(QMainWindow):
 		self._set_status("Capturing full-resolution photo...")
 		QApplication.processEvents()
 		try:
-			image = self._rotated_image(self.camera.capture_photo())
+			image = self._oriented_image(self.camera.capture_photo())
 			if not image.save(str(filepath), "JPEG", 95):
 				raise OSError(f"Could not write photo to {filepath}")
 			self._set_status(f"Saved {filepath.name}")
@@ -169,8 +171,11 @@ class CameraWindow(QMainWindow):
 		).copy()
 
 	@classmethod
-	def _rotated_image(cls, frame):
-		return cls._frame_image(frame).transformed(QTransform().rotate(-90))
+	def _oriented_image(cls, frame):
+		image = cls._frame_image(frame)
+		if cls.CAMERA_ORIENTATION_DEGREES % 360 == 0:
+			return image
+		return image.transformed(QTransform().rotate(cls.CAMERA_ORIENTATION_DEGREES))
 
 	def _choose_photo_folder(self):
 		folder = QFileDialog.getExistingDirectory(
