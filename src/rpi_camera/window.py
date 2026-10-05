@@ -29,7 +29,7 @@ class CameraWindow(QMainWindow):
 		super().__init__()
 		self.setObjectName("cameraWindow")
 		self.setWindowTitle("Raspberry Pi Camera")
-		self.resize(1280, 800)
+		self.resize(800, 480)
 		self.camera = camera or CameraService()
 		self.photo_directory = Path.home() / "Pictures" / "RPiCamera"
 		self.photo_directory.mkdir(parents=True, exist_ok=True)
@@ -49,11 +49,11 @@ class CameraWindow(QMainWindow):
 		root = QWidget()
 		root.setObjectName("mainContent")
 		layout = QHBoxLayout(root)
-		layout.setContentsMargins(12, 12, 12, 12)
-		layout.setSpacing(12)
+		layout.setContentsMargins(8, 8, 8, 8)
+		layout.setSpacing(8)
 
 		preview_column = QVBoxLayout()
-		preview_column.setSpacing(10)
+		preview_column.setSpacing(6)
 		self.preview = QLabel("Starting camera...")
 		self.preview.setObjectName("preview")
 		self.preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -64,15 +64,19 @@ class CameraWindow(QMainWindow):
 		footer = QHBoxLayout()
 		self.status = QLabel("Camera not connected")
 		self.status.setObjectName("status")
+		self.status.setWordWrap(False)
+		self.status.setMinimumWidth(0)
+		self.status.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
 		self.capture_button = QPushButton("●")
 		self.capture_button.setObjectName("shutterButton")
 		self.capture_button.setToolTip("Take photo")
 		self.capture_button.clicked.connect(self._capture_photo)
 		self.capture_button.setEnabled(False)
-		self.folder_button = QPushButton("Photo folder")
+		self.folder_button = QPushButton("Folder")
 		self.folder_button.setObjectName("folderButton")
+		self.folder_button.setToolTip("Choose where captured photos are saved")
 		self.folder_button.clicked.connect(self._choose_photo_folder)
-		self.transfer_button = QPushButton("Transfer photos")
+		self.transfer_button = QPushButton("Transfer")
 		self.transfer_button.setObjectName("transferButton")
 		self.transfer_button.setToolTip("Copy or move captured photos to a removable drive")
 		self.transfer_button.clicked.connect(self._start_photo_transfer)
@@ -248,6 +252,7 @@ class CameraWindow(QMainWindow):
 
 	def _set_status(self, message):
 		self.status.setText(message)
+		self.status.setToolTip(message)
 
 	def closeEvent(self, event):
 		self.preview_timer.stop()

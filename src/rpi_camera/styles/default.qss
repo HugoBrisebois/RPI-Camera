@@ -13,7 +13,8 @@ QLabel#sectionTitle {
 
 QLabel#status {
 	color: #b7c0c5;
-	padding: 8px;
+	padding: 4px;
+	font-size: 13px;
 }
 
 QLabel#preview {
@@ -31,29 +32,29 @@ QSpinBox, QDoubleSpinBox, QComboBox {
 	background-color: #252a2e;
 	border: 1px solid #515b61;
 	border-radius: 4px;
-	min-height: 42px;
+	min-height: 48px;
 	padding: 2px 8px;
-	font-size: 16px;
+	font-size: 15px;
 }
 
 QCheckBox {
-	min-height: 42px;
+	min-height: 48px;
 	spacing: 10px;
-	font-size: 16px;
+	font-size: 15px;
 }
 
 QCheckBox::indicator {
-	width: 24px;
-	height: 24px;
+	width: 28px;
+	height: 28px;
 }
 
 QPushButton {
 	background-color: #35413f;
 	border: 1px solid #65736f;
 	border-radius: 5px;
-	min-height: 46px;
-	padding: 4px 12px;
-	font-size: 16px;
+	min-height: 50px;
+	padding: 4px 8px;
+	font-size: 15px;
 }
 
 QPushButton:hover {
@@ -82,6 +83,34 @@ QPushButton#shutterButton {
 
 QPushButton#shutterButton:hover {
 	background-color: #ed7359;
+}
+
+QPushButton#folderButton, QPushButton#transferButton {
+	min-width: 76px;
+	min-height: 52px;
+}
+
+QWidget[objectName$="Row"] QLabel {
+	font-size: 14px;
+}
+
+QAbstractSpinBox::up-button, QAbstractSpinBox::down-button {
+	width: 30px;
+}
+
+QComboBox::drop-down {
+	width: 38px;
+}
+
+QScrollBar:vertical {
+	width: 22px;
+	background: #202528;
+}
+
+QScrollBar::handle:vertical {
+	min-height: 52px;
+	background: #65736f;
+	border-radius: 6px;
 }
 
 QDialog#transferDialog {

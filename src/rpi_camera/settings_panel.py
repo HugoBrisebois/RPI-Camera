@@ -1,8 +1,9 @@
-from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import (
 	QCheckBox,
 	QComboBox,
 	QDoubleSpinBox,
+	QHBoxLayout,
 	QLabel,
 	QPushButton,
 	QScrollArea,
@@ -22,13 +23,14 @@ class SettingsPanel(QScrollArea):
 		self.setObjectName("settingsScroll")
 		self.setWidgetResizable(True)
 		self.setMinimumWidth(280)
+		self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
 
 		self.panel = QWidget()
 		self.panel.setObjectName("settingsPanel")
 		self.panel.setMinimumWidth(260)
 		self.layout = QVBoxLayout(self.panel)
-		self.layout.setContentsMargins(8, 4, 8, 4)
-		self.layout.setSpacing(8)
+		self.layout.setContentsMargins(8, 6, 8, 6)
+		self.layout.setSpacing(5)
 		self._build_controls()
 		self.setWidget(self.panel)
 
@@ -96,29 +98,43 @@ class SettingsPanel(QScrollArea):
 		self.layout.addWidget(self._section(title))
 
 	def _double_control(self, title, minimum, maximum, value, decimals, name):
-		label = QLabel(title)
-		label.setObjectName(f"{name}Label")
-		self.layout.addWidget(label)
+		row, label = self._control_row(title, name)
 		control = QDoubleSpinBox()
 		control.setObjectName(name)
 		control.setRange(minimum, maximum)
 		control.setDecimals(decimals)
 		control.setSingleStep(0.1 if decimals else 1)
 		control.setValue(value)
-		self.layout.addWidget(control)
+		control.setMinimumWidth(104)
+		row.layout().addWidget(control)
+		self.layout.addWidget(row)
 		return control
 
 	def _integer_control(self, title, minimum, maximum, value, step, name):
-		label = QLabel(title)
-		label.setObjectName(f"{name}Label")
-		self.layout.addWidget(label)
+		row, _label = self._control_row(title, name)
 		control = QSpinBox()
 		control.setObjectName(name)
 		control.setRange(minimum, maximum)
 		control.setSingleStep(step)
 		control.setValue(value)
-		self.layout.addWidget(control)
+		control.setMinimumWidth(104)
+		row.layout().addWidget(control)
+		self.layout.addWidget(row)
 		return control
+
+	@staticmethod
+	def _control_row(title, name):
+		row = QWidget()
+		row.setObjectName(f"{name}Row")
+		row.setMinimumHeight(52)
+		row_layout = QHBoxLayout(row)
+		row_layout.setContentsMargins(0, 0, 0, 0)
+		row_layout.setSpacing(6)
+		label = QLabel(title)
+		label.setObjectName(f"{name}Label")
+		label.setWordWrap(False)
+		row_layout.addWidget(label, 1)
+		return row, label
 
 	def configure_camera_controls(self, controls):
 		self._supported_controls = set(controls)

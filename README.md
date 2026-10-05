@@ -26,6 +26,8 @@ The wheel is written to `dist/`. Picamera2 and PyQt6 remain Raspberry Pi OS syst
 
 The app opens maximized. Photos are saved as full-sensor-resolution JPEGs in `~/Pictures/RPiCamera` by default; use **Photo folder** to choose another directory.
 
+The default layout targets an 800x480 landscape 5-inch touchscreen: camera preview and shutter remain visible alongside a vertically scrollable settings column. Setting labels sit beside their touch-sized inputs to reduce scrolling. The same layout expands on larger displays.
+
 ## Removable drive transfers
 
 The app checks mounted storage every two seconds and recognizes removable or USB-attached block devices. When a drive is mounted, it offers to transfer any captured JPEGs. You can also use **Transfer photos** later. Choose **Copy** to keep the originals, or **Move** to remove each original only after its copy has completed. Files are placed in an `RPiCamera` folder on the drive, and existing names are preserved by adding a numeric suffix rather than overwriting them. The drive must be mounted by Raspberry Pi OS before it can be used; the app does not format or mount drives.
