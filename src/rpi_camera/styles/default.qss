@@ -83,3 +83,19 @@ QPushButton#shutterButton {
 QPushButton#shutterButton:hover {
 	background-color: #ed7359;
 }
+
+QDialog#transferDialog {
+	min-width: 420px;
+}
+
+QDialog#transferDialog QLabel {
+	min-height: 34px;
+}
+
+QComboBox#driveChoice, QComboBox#transferAction {
+	min-height: 48px;
+}
+
+QDialog#transferDialog QPushButton {
+	min-height: 48px;
+}

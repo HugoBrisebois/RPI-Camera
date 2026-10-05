@@ -17,7 +17,9 @@ from PyQt6.QtWidgets import (
 )
 
 from .camera import CameraService
+from .photo_transfer import PhotoTransferWorker, TransferOptionsDialog
 from .settings_panel import SettingsPanel
+from .storage import mounted_removable_drives
 
 
 class CameraWindow(QMainWindow):
@@ -31,11 +33,17 @@ class CameraWindow(QMainWindow):
 		self.camera = camera or CameraService()
 		self.photo_directory = Path.home() / "Pictures" / "RPiCamera"
 		self.photo_directory.mkdir(parents=True, exist_ok=True)
+		self.removable_drives = {}
+		self.transfer_worker = None
 		self._build_ui()
 		self.preview_timer = QTimer(self)
 		self.preview_timer.timeout.connect(self._update_preview)
+		self.storage_timer = QTimer(self)
+		self.storage_timer.timeout.connect(self._scan_removable_drives)
+		self.storage_timer.start(2000)
 		self.settings.controlsChanged.connect(self._apply_controls)
 		self._start_camera()
+		QTimer.singleShot(0, self._scan_removable_drives)
 
 	def _build_ui(self):
 		root = QWidget()
@@ -64,8 +72,14 @@ class CameraWindow(QMainWindow):
 		self.folder_button = QPushButton("Photo folder")
 		self.folder_button.setObjectName("folderButton")
 		self.folder_button.clicked.connect(self._choose_photo_folder)
+		self.transfer_button = QPushButton("Transfer photos")
+		self.transfer_button.setObjectName("transferButton")
+		self.transfer_button.setToolTip("Copy or move captured photos to a removable drive")
+		self.transfer_button.clicked.connect(self._start_photo_transfer)
+		self.transfer_button.setEnabled(False)
 		footer.addWidget(self.status, 1)
 		footer.addWidget(self.folder_button)
+		footer.addWidget(self.transfer_button)
 		footer.addWidget(self.capture_button)
 		preview_column.addLayout(footer)
 		layout.addLayout(preview_column, 1)
@@ -140,6 +154,85 @@ class CameraWindow(QMainWindow):
 			self.photo_directory = Path(folder)
 			self._set_status(f"Photos saved to {folder}")
 
+	def _scan_removable_drives(self):
+		try:
+			drives = mounted_removable_drives()
+		except (OSError, RuntimeError) as exc:
+			self._set_status(f"Could not check removable drives: {exc}")
+			return
+
+		current = {drive.identifier: drive for drive in drives}
+		previous_ids = set(self.removable_drives)
+		self.removable_drives = current
+		self.transfer_button.setEnabled(bool(current) and not self._transfer_is_running())
+		new_drives = [drive for key, drive in current.items() if key not in previous_ids]
+		if new_drives:
+			photos = self._captured_photos()
+			if photos:
+				self._set_status(f"Removable drive detected: {new_drives[0].label}")
+				self._show_transfer_dialog(new_drives)
+			else:
+				self._set_status("Removable drive detected; take photos, then choose Transfer photos")
+
+	def _captured_photos(self):
+		try:
+			return sorted(
+				path for path in self.photo_directory.iterdir()
+				if path.is_file() and path.suffix.lower() in {".jpg", ".jpeg"}
+			)
+		except OSError:
+			return []
+
+	def _transfer_is_running(self):
+		return self.transfer_worker is not None and self.transfer_worker.isRunning()
+
+	def _start_photo_transfer(self):
+		if self._transfer_is_running():
+			return
+		if not self.removable_drives:
+			self._set_status("Connect and mount a removable drive first")
+			return
+		if not self._captured_photos():
+			QMessageBox.information(self, "No photos", "There are no captured JPEG photos to transfer.")
+			return
+		self._show_transfer_dialog(list(self.removable_drives.values()))
+
+	def _show_transfer_dialog(self, drives):
+		dialog = TransferOptionsDialog(drives, self)
+		if dialog.exec() != TransferOptionsDialog.DialogCode.Accepted:
+			return
+		photos = self._captured_photos()
+		if not photos:
+			QMessageBox.information(self, "No photos", "There are no captured JPEG photos to transfer.")
+			return
+
+		self.transfer_button.setEnabled(False)
+		self.transfer_worker = PhotoTransferWorker(
+			self.photo_directory, dialog.drive, dialog.action, self
+		)
+		self.transfer_worker.progressChanged.connect(self._transfer_progress)
+		self.transfer_worker.transferFinished.connect(self._transfer_result)
+		self.transfer_worker.finished.connect(self._transfer_thread_finished)
+		self._set_status(f"Transferring {len(photos)} photos...")
+		self.transfer_worker.start()
+
+	def _transfer_progress(self, current, total):
+		self._set_status(f"Transferring photos: {current}/{total}")
+
+	def _transfer_result(self, transferred, total, failures):
+		if failures:
+			self._set_status(f"Transferred {transferred}/{total}; some photos could not be transferred")
+			QMessageBox.warning(self, "Transfer incomplete", failures)
+		else:
+			self._set_status(f"Transferred {transferred} photo(s) successfully")
+
+	def _transfer_thread_finished(self):
+		worker = self.transfer_worker
+		self.transfer_worker = None
+		if worker is not None:
+			worker.deleteLater()
+		self.transfer_button.setEnabled(bool(self.removable_drives))
+
 	def _show_camera_error(self, message):
 		self.preview_timer.stop()
 		self.preview.setText(f"Camera unavailable\n{message}")
@@ -151,6 +244,9 @@ class CameraWindow(QMainWindow):
 
 	def closeEvent(self, event):
 		self.preview_timer.stop()
+		self.storage_timer.stop()
+		if self._transfer_is_running():
+			self.transfer_worker.wait()
 		try:
 			self.camera.close()
 		except Exception:

@@ -26,6 +26,10 @@ The wheel is written to `dist/`. Picamera2 and PyQt6 remain Raspberry Pi OS syst
 
 The app opens maximized. Photos are saved as full-sensor-resolution JPEGs in `~/Pictures/RPiCamera` by default; use **Photo folder** to choose another directory.
 
+## Removable drive transfers
+
+The app checks mounted storage every two seconds and recognizes removable or USB-attached block devices. When a drive is mounted, it offers to transfer any captured JPEGs. You can also use **Transfer photos** later. Choose **Copy** to keep the originals, or **Move** to remove each original only after its copy has completed. Files are placed in an `RPiCamera` folder on the drive, and existing names are preserved by adding a numeric suffix rather than overwriting them. The drive must be mounted by Raspberry Pi OS before it can be used; the app does not format or mount drives.
+
 ## Camera controls
 
 - Live 1280x720 preview with a full-resolution photo shutter.
@@ -51,6 +55,8 @@ Alternatively set `RPI_CAMERA_STYLESHEET=/path/to/my-theme.qss`. The command-lin
 - `src/rpi_camera/camera.py`: Picamera2 lifecycle, preview frames, control application, and photo capture.
 - `src/rpi_camera/settings_panel.py`: touch-friendly camera settings and control mapping.
 - `src/rpi_camera/window.py`: main window, preview display, and user actions.
+- `src/rpi_camera/storage.py`: mounted removable-volume detection.
+- `src/rpi_camera/photo_transfer.py`: transfer dialog and background copy/move worker.
 - `src/rpi_camera/main.py`: command-line options, stylesheet loading, and app startup.
 - `src/rpi_camera/styles/default.qss`: editable default theme.
 - `scripts/`: Raspberry Pi OS dependency installation and wheel build helpers.
