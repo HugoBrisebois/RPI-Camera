@@ -34,7 +34,7 @@ The app checks mounted storage every two seconds and recognizes removable or USB
 
 ## Camera controls
 
-- Live 1280x720 preview rotated 90 degrees counterclockwise, with full-resolution photos saved in the same orientation.
+- Live 1280x720 landscape preview fitted to the available preview area without cropping; full-resolution photos are rotated 90 degrees counterclockwise for the camera-body orientation.
 - Automatic exposure or manual shutter time (milliseconds) and analogue gain (shown as approximate ISO; the exact ISO equivalent depends on the sensor).
 - Automatic or manual white balance, with color temperature when supported.
 - Continuous, requested, or manual autofocus, plus a **Focus now** action.

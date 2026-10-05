@@ -116,7 +116,7 @@ class CameraWindow(QMainWindow):
 	def _update_preview(self):
 		try:
 			frame = self.camera.capture_preview()
-			image = self._rotated_image(frame)
+			image = self._frame_image(frame)
 			self._preview_pixmap = QPixmap.fromImage(image)
 			self._fit_preview()
 		except Exception as exc:
@@ -158,16 +158,19 @@ class CameraWindow(QMainWindow):
 			self.capture_button.setEnabled(True)
 
 	@staticmethod
-	def _rotated_image(frame):
+	def _frame_image(frame):
 		height, width, channels = frame.shape
-		image = QImage(
+		return QImage(
 			frame.data,
 			width,
 			height,
 			channels * width,
 			QImage.Format.Format_RGB888,
 		).copy()
-		return image.transformed(QTransform().rotate(-90))
+
+	@classmethod
+	def _rotated_image(cls, frame):
+		return cls._frame_image(frame).transformed(QTransform().rotate(-90))
 
 	def _choose_photo_folder(self):
 		folder = QFileDialog.getExistingDirectory(
