@@ -26,7 +26,7 @@ The wheel is written to `dist/`. Picamera2 and PyQt6 remain Raspberry Pi OS syst
 
 The app opens maximized. Photos are saved as full-sensor-resolution JPEGs in `~/Pictures/RPiCamera` by default; use **Photo folder** to choose another directory.
 
-The default layout targets an 800x480 landscape 5-inch touchscreen: camera preview and shutter remain visible alongside a vertically scrollable settings column. Setting labels sit beside their touch-sized inputs to reduce scrolling. The same layout expands on larger displays.
+The default layout targets an 800x480 landscape 5-inch touchscreen: camera preview and shutter remain visible alongside a vertically scrollable settings column. Numeric settings have large drag sliders as well as precise value inputs; sliders are disabled whenever the corresponding setting is controlled automatically or is unavailable. The same layout expands on larger displays.
 
 ## Removable drive transfers
 

@@ -7,6 +7,7 @@ from PyQt6.QtWidgets import (
 	QLabel,
 	QPushButton,
 	QScrollArea,
+	QSlider,
 	QSpinBox,
 	QVBoxLayout,
 	QWidget,
@@ -28,6 +29,7 @@ class SettingsPanel(QScrollArea):
 		self.panel = QWidget()
 		self.panel.setObjectName("settingsPanel")
 		self.panel.setMinimumWidth(260)
+		self.sliders = {}
 		self.layout = QVBoxLayout(self.panel)
 		self.layout.setContentsMargins(8, 6, 8, 6)
 		self.layout.setSpacing(5)
@@ -108,6 +110,7 @@ class SettingsPanel(QScrollArea):
 		control.setMinimumWidth(104)
 		row.layout().addWidget(control)
 		self.layout.addWidget(row)
+		self._add_touch_slider(control, name)
 		return control
 
 	def _integer_control(self, title, minimum, maximum, value, step, name):
@@ -120,7 +123,47 @@ class SettingsPanel(QScrollArea):
 		control.setMinimumWidth(104)
 		row.layout().addWidget(control)
 		self.layout.addWidget(row)
+		self._add_touch_slider(control, name)
 		return control
+
+	def _add_touch_slider(self, control, name):
+		slider = QSlider(Qt.Orientation.Horizontal)
+		slider.setObjectName(f"{name}Slider")
+		slider.setRange(0, 1000)
+		slider.setMinimumHeight(48)
+		slider.setTracking(False)
+		slider.valueChanged.connect(
+			lambda position, control=control: self._set_control_from_slider(control, position)
+		)
+		control.valueChanged.connect(
+			lambda value, control=control, slider=slider:
+			self._sync_slider(control, slider, value)
+		)
+		self.sliders[name] = slider
+		self.layout.addWidget(slider)
+		self._sync_slider(control, slider, control.value())
+
+	@staticmethod
+	def _slider_position(control, value):
+		span = control.maximum() - control.minimum()
+		if span <= 0:
+			return 0
+		return round((value - control.minimum()) * 1000 / span)
+
+	def _sync_slider(self, control, slider, value):
+		slider.blockSignals(True)
+		slider.setValue(self._slider_position(control, value))
+		slider.blockSignals(False)
+
+	@staticmethod
+	def _set_control_from_slider(control, position):
+		minimum = control.minimum()
+		step = control.singleStep()
+		value = minimum + (control.maximum() - minimum) * position / 1000
+		value = minimum + round((value - minimum) / step) * step
+		if isinstance(control, QSpinBox):
+			value = round(value)
+		control.setValue(value)
 
 	@staticmethod
 	def _control_row(title, name):
@@ -156,10 +199,10 @@ class SettingsPanel(QScrollArea):
 			self.auto_white_balance.setChecked(False)
 		self._update_manual_control_states()
 
-	@staticmethod
-	def _set_supported_range(widget, controls, name, minimum, maximum, default, scale=1):
+	def _set_supported_range(self, widget, controls, name, minimum, maximum, default, scale=1):
 		if name not in controls:
 			widget.setEnabled(False)
+			self.sliders[widget.objectName()].setEnabled(False)
 			return
 		camera_min, camera_max, camera_default = controls[name]
 		low = max(minimum, camera_min * scale)
@@ -169,16 +212,29 @@ class SettingsPanel(QScrollArea):
 		widget.setRange(low, high)
 		value = (camera_default if camera_default is not None else default) * scale
 		widget.setValue(int(round(value)) if isinstance(widget, QSpinBox) else value)
+		self._sync_slider(widget, self.sliders[widget.objectName()], widget.value())
+		self.sliders[widget.objectName()].setEnabled(True)
+
+	def _set_control_enabled(self, widget, enabled):
+		widget.setEnabled(enabled)
+		self.sliders[widget.objectName()].setEnabled(enabled)
 
 	def _update_manual_control_states(self):
 		controls = getattr(self, "_supported_controls", set())
-		self.shutter.setEnabled(not self.auto_exposure.isChecked() and "ExposureTime" in controls)
-		self.iso.setEnabled(not self.auto_exposure.isChecked() and "AnalogueGain" in controls)
-		self.color_temperature.setEnabled(
-			not self.auto_white_balance.isChecked() and "ColourTemperature" in controls
+		self._set_control_enabled(
+			self.shutter, not self.auto_exposure.isChecked() and "ExposureTime" in controls
+		)
+		self._set_control_enabled(
+			self.iso, not self.auto_exposure.isChecked() and "AnalogueGain" in controls
+		)
+		self._set_control_enabled(
+			self.color_temperature,
+			not self.auto_white_balance.isChecked() and "ColourTemperature" in controls,
 		)
 		manual_focus = self.focus_mode.currentData() == 0
-		self.focus_position.setEnabled(manual_focus and "LensPosition" in controls)
+		self._set_control_enabled(
+			self.focus_position, manual_focus and "LensPosition" in controls
+		)
 		self.focus_button.setEnabled(
 			self.focus_mode.currentData() == 1 and "AfTrigger" in controls
 		)
@@ -209,7 +265,10 @@ class SettingsPanel(QScrollArea):
 
 	def _white_balance_mode_changed(self, enabled):
 		self.controlsChanged.emit({"AwbEnable": enabled})
-		self.color_temperature.setEnabled(not enabled and self.color_temperature.maximum() > 0)
+		controls = getattr(self, "_supported_controls", set())
+		self._set_control_enabled(
+			self.color_temperature, not enabled and "ColourTemperature" in controls
+		)
 
 	def _focus_mode_changed(self, index):
 		mode = self.focus_mode.itemData(index)

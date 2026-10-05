@@ -102,6 +102,32 @@ QComboBox::drop-down {
 	width: 38px;
 }
 
+QSlider {
+	min-height: 48px;
+	padding: 2px 8px;
+}
+
+QSlider::groove:horizontal {
+	height: 10px;
+	background-color: #394247;
+	border-radius: 5px;
+	margin: 0 14px;
+}
+
+QSlider::sub-page:horizontal {
+	background-color: #a8d8ca;
+	border-radius: 5px;
+}
+
+QSlider::handle:horizontal {
+	width: 32px;
+	height: 32px;
+	margin: -12px 0;
+	background-color: #edf0f2;
+	border: 2px solid #a8d8ca;
+	border-radius: 18px;
+}
+
 QScrollBar:vertical {
 	width: 22px;
 	background: #202528;
