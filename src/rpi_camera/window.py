@@ -2,7 +2,7 @@ from datetime import datetime
 from pathlib import Path
 
 from PyQt6.QtCore import Qt, QTimer
-from PyQt6.QtGui import QImage, QPixmap
+from PyQt6.QtGui import QImage, QPixmap, QTransform
 from PyQt6.QtWidgets import (
 	QApplication,
 	QFileDialog,
@@ -109,14 +109,7 @@ class CameraWindow(QMainWindow):
 	def _update_preview(self):
 		try:
 			frame = self.camera.capture_preview()
-			height, width, channels = frame.shape
-			image = QImage(
-				frame.data,
-				width,
-				height,
-				channels * width,
-				QImage.Format.Format_RGB888,
-			).copy()
+			image = self._rotated_image(frame)
 			pixmap = QPixmap.fromImage(image)
 			self.preview.setPixmap(
 				pixmap.scaled(
@@ -138,13 +131,27 @@ class CameraWindow(QMainWindow):
 		self._set_status("Capturing full-resolution photo...")
 		QApplication.processEvents()
 		try:
-			self.camera.capture_photo(filepath)
+			image = self._rotated_image(self.camera.capture_photo())
+			if not image.save(str(filepath), "JPEG", 95):
+				raise OSError(f"Could not write photo to {filepath}")
 			self._set_status(f"Saved {filepath.name}")
 		except Exception as exc:
 			self._set_status(f"Photo failed: {exc}")
 			QMessageBox.warning(self, "Photo failed", str(exc))
 		finally:
 			self.capture_button.setEnabled(True)
+
+	@staticmethod
+	def _rotated_image(frame):
+		height, width, channels = frame.shape
+		image = QImage(
+			frame.data,
+			width,
+			height,
+			channels * width,
+			QImage.Format.Format_RGB888,
+		).copy()
+		return image.transformed(QTransform().rotate(-90))
 
 	def _choose_photo_folder(self):
 		folder = QFileDialog.getExistingDirectory(

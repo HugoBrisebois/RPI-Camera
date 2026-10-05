@@ -52,11 +52,11 @@ class CameraService:
 	def capture_preview(self):
 		return self._camera.capture_array("main")
 
-	def capture_photo(self, filepath: Path):
+	def capture_photo(self):
 		configuration = self._camera.create_still_configuration(
-			main={"size": self.sensor_resolution}
+			main={"size": self.sensor_resolution, "format": "RGB888"}
 		)
-		self._camera.switch_mode_and_capture_file(configuration, str(filepath))
+		return self._camera.switch_mode_and_capture_array(configuration, "main")
 
 	def close(self):
 		if self._camera is not None:
