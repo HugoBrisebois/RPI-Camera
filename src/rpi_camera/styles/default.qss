@@ -90,6 +90,16 @@ QPushButton#folderButton, QPushButton#transferButton {
 	min-height: 52px;
 }
 
+QPushButton#photosButton {
+	min-width: 72px;
+	min-height: 52px;
+}
+
+QPushButton#fullscreenButton {
+	min-width: 92px;
+	min-height: 52px;
+}
+
 QWidget[objectName$="Row"] QLabel {
 	font-size: 14px;
 }
@@ -153,4 +163,50 @@ QComboBox#driveChoice, QComboBox#transferAction {
 
 QDialog#transferDialog QPushButton {
 	min-height: 48px;
+}
+
+QDialog#photoGallery {
+	background-color: #101416;
+}
+
+QLabel#galleryTitle {
+	font-size: 22px;
+	font-weight: 700;
+}
+
+QLabel#galleryCount {
+	color: #b7c0c5;
+}
+
+QLabel#galleryPhoto {
+	background-color: #080a0b;
+	color: #f3b09f;
+	font-size: 18px;
+}
+
+QLabel#galleryEmptyState {
+	color: #b7c0c5;
+	font-size: 20px;
+}
+
+QListWidget#photoThumbnails {
+	background-color: #171a1d;
+	border: 1px solid #394247;
+	outline: 0;
+}
+
+QListWidget#photoThumbnails::item {
+	min-width: 116px;
+	min-height: 92px;
+	padding: 4px;
+}
+
+QListWidget#photoThumbnails::item:selected {
+	background-color: #35413f;
+	border: 1px solid #a8d8ca;
+}
+
+QPushButton#galleryBackButton {
+	min-width: 100px;
+	min-height: 52px;
 }

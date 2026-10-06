@@ -23,6 +23,11 @@ def main(argv=None):
 		metavar="PATH",
 		help="load a custom Qt stylesheet (.qss); overrides RPI_CAMERA_STYLESHEET",
 	)
+	parser.add_argument(
+		"--windowed",
+		action="store_true",
+		help="start maximized in a decorated window instead of fullscreen",
+	)
 	args = parser.parse_args(argv)
 	app = QApplication(sys.argv[:1])
 	stylesheet = _stylesheet_path(args.stylesheet)
@@ -31,7 +36,10 @@ def main(argv=None):
 	except OSError as exc:
 		parser.error(f"cannot read stylesheet {stylesheet}: {exc}")
 	window = CameraWindow()
-	window.showMaximized()
+	if args.windowed:
+		window.showMaximized()
+	else:
+		window.showFullScreen()
 	return app.exec()
 
 

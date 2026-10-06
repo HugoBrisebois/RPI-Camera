@@ -24,7 +24,9 @@ sh scripts/build_pi.sh
 
 The wheel is written to `dist/`. Picamera2 and PyQt6 remain Raspberry Pi OS system dependencies and are intentionally not bundled into it.
 
-The app opens maximized. Photos are saved as full-sensor-resolution JPEGs in `~/Pictures/RPiCamera` by default; use **Folder** to choose another directory. The selected folder is remembered in `~/.config/rpi-camera/settings.json` and reused the next time the app starts.
+The app starts in fullscreen with the live preview, camera settings, shutter, and photo actions available. Use **Windowed** or press **Escape** to leave fullscreen; use **Fullscreen** to return. Start in a decorated maximized window for development with `sh run.sh --windowed`. This is application fullscreen: whether desktop panels are hidden depends on the Raspberry Pi OS desktop session. For a camera appliance, configure the app to start in the graphical session.
+
+Photos are saved as full-sensor-resolution JPEGs in `~/Pictures/RPiCamera` by default; use **Folder** to choose another directory. The selected folder is remembered in `~/.config/rpi-camera/settings.json` and reused the next time the app starts. **Photos** opens a fullscreen, view-only gallery with a thumbnail strip; select a thumbnail to view it and choose **Camera** to return to the live view. **Transfer** remains available for copying or moving photos to a mounted removable drive.
 
 The default layout targets an 800x480 landscape 5-inch touchscreen: camera preview and shutter remain visible alongside a vertically scrollable settings column. Numeric settings have large drag sliders as well as precise value inputs; sliders are disabled whenever the corresponding setting is controlled automatically or is unavailable. The same layout expands on larger displays.
 
@@ -55,6 +57,7 @@ Alternatively set `RPI_CAMERA_STYLESHEET=/path/to/my-theme.qss`. The command-lin
 ## Project layout
 
 - `src/rpi_camera/camera.py`: Picamera2 lifecycle, preview frames, control application, and photo capture.
+- `src/rpi_camera/photo_gallery.py`: fullscreen browser for captured photos.
 - `src/rpi_camera/settings_panel.py`: touch-friendly camera settings and control mapping.
 - `src/rpi_camera/window.py`: main window, preview display, and user actions.
 - `src/rpi_camera/storage.py`: mounted removable-volume detection.

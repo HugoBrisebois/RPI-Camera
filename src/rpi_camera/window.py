@@ -17,6 +17,7 @@ from PyQt6.QtWidgets import (
 )
 
 from .camera import CameraService
+from .photo_gallery import PhotoGalleryDialog
 from .photo_transfer import PhotoTransferWorker, TransferOptionsDialog
 from .preferences import load_photo_directory, save_photo_directory
 from .settings_panel import SettingsPanel
@@ -86,9 +87,19 @@ class CameraWindow(QMainWindow):
 		self.transfer_button.setToolTip("Copy or move captured photos to a removable drive")
 		self.transfer_button.clicked.connect(self._start_photo_transfer)
 		self.transfer_button.setEnabled(False)
+		self.photos_button = QPushButton("Photos")
+		self.photos_button.setObjectName("photosButton")
+		self.photos_button.setToolTip("Browse captured photos")
+		self.photos_button.clicked.connect(self._open_photo_gallery)
+		self.fullscreen_button = QPushButton("Windowed")
+		self.fullscreen_button.setObjectName("fullscreenButton")
+		self.fullscreen_button.setToolTip("Leave fullscreen (Escape)")
+		self.fullscreen_button.clicked.connect(self._toggle_fullscreen)
 		footer.addWidget(self.status, 1)
 		footer.addWidget(self.folder_button)
 		footer.addWidget(self.transfer_button)
+		footer.addWidget(self.photos_button)
+		footer.addWidget(self.fullscreen_button)
 		footer.addWidget(self.capture_button)
 		preview_column.addLayout(footer)
 		layout.addLayout(preview_column, 1)
@@ -140,11 +151,47 @@ class CameraWindow(QMainWindow):
 		super().resizeEvent(event)
 		self._fit_preview()
 
+	def showEvent(self, event):
+		super().showEvent(event)
+		self._update_fullscreen_button()
+
+	def keyPressEvent(self, event):
+		if event.key() == Qt.Key.Key_Escape and self.isFullScreen():
+			self.showMaximized()
+			self._update_fullscreen_button()
+			event.accept()
+			return
+		super().keyPressEvent(event)
+
+	def _toggle_fullscreen(self):
+		if self.isFullScreen():
+			self.showMaximized()
+		else:
+			self.showFullScreen()
+		self._update_fullscreen_button()
+		QTimer.singleShot(0, self._fit_preview)
+
+	def _update_fullscreen_button(self):
+		fullscreen = self.isFullScreen()
+		self.fullscreen_button.setText("Windowed" if fullscreen else "Fullscreen")
+		self.fullscreen_button.setToolTip(
+			"Leave fullscreen (Escape)" if fullscreen else "Enter fullscreen"
+		)
+
+	def _open_photo_gallery(self):
+		gallery = PhotoGalleryDialog(self._captured_photos(), self)
+		gallery.setWindowState(Qt.WindowState.WindowFullScreen)
+		gallery.exec()
+
 	def _capture_photo(self):
 		if not self.camera.connected:
 			return
 		timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 		filepath = self.photo_directory / f"IMG_{timestamp}.jpg"
+		sequence = 2
+		while filepath.exists():
+			filepath = self.photo_directory / f"IMG_{timestamp}_{sequence}.jpg"
+			sequence += 1
 		self.capture_button.setEnabled(False)
 		self._set_status("Capturing full-resolution photo...")
 		QApplication.processEvents()
