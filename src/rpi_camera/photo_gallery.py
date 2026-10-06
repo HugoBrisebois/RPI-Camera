@@ -47,8 +47,9 @@ class PhotoGalleryDialog(QDialog):
 		self.photo_view = QLabel()
 		self.photo_view.setObjectName("galleryPhoto")
 		self.photo_view.setAlignment(Qt.AlignmentFlag.AlignCenter)
+		self.photo_view.setMinimumSize(0, 0)
 		self.photo_view.setSizePolicy(
-			QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
+			QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored
 		)
 		layout.addWidget(self.photo_view, 1)
 
