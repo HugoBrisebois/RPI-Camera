@@ -23,6 +23,22 @@ QLabel#preview {
 	font-size: 20px;
 }
 
+QPushButton#settingsToggle {
+	background-color: #35413f;
+	min-width: 108px;
+	min-height: 50px;
+}
+
+QRubberBand#focusMarker {
+	border: 3px solid #a8d8ca;
+	background: transparent;
+}
+
+QPushButton#shutterButton:disabled {
+	background-color: #8b473a;
+	color: #ffffff;
+}
+
 QScrollArea#settingsScroll {
 	background-color: #171a1d;
 	border: 0;

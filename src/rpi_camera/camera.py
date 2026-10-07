@@ -9,6 +9,11 @@ except ImportError as exc:
 else:
 	PICAMERA2_IMPORT_ERROR = None
 
+try:
+	from libcamera import Rectangle
+except ImportError:
+	Rectangle = None
+
 
 class CameraService:
 	"""Owns the Picamera2 lifecycle and translates app actions to camera calls."""
@@ -57,6 +62,19 @@ class CameraService:
 			main={"size": self.sensor_resolution, "format": "RGB888"}
 		)
 		return self._camera.switch_mode_and_capture_array(configuration, "main")
+
+	def focus_at(self, x, y, focus_mode):
+		if "AfWindows" not in self.controls or Rectangle is None:
+			raise RuntimeError("Tap-to-focus is not supported by this camera")
+		width, height = self.sensor_resolution
+		window_width = max(1, round(width * 0.12))
+		window_height = max(1, round(height * 0.12))
+		left = min(max(round(x * width - window_width / 2), 0), width - window_width)
+		top = min(max(round(y * height - window_height / 2), 0), height - window_height)
+		controls = {"AfWindows": [Rectangle(left, top, window_width, window_height)]}
+		if focus_mode == 1 and "AfTrigger" in self.controls:
+			controls["AfTrigger"] = 1
+		self.set_controls(controls)
 
 	def close(self):
 		if self._camera is not None:
